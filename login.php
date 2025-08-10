@@ -1,33 +1,37 @@
 <?php
-header("Access-Control-Allow-Origin: *");
-header("Content-Type: application/json; charset=UTF-8");
-
 require 'db.php';
+header('Content-Type: application/json');
 
-$input = json_decode(file_get_contents("php://input"), true);
+$data = json_decode(file_get_contents("php://input"), true);
 
-if (!isset($input['email']) || !isset($input['contrasena'])) {
-    echo json_encode(["error" => "Datos incompletos"]);
+if (empty($data['email']) || empty($data['contrasena'])) {
+    echo json_encode(["estado" => "error", "mensaje" => "Email y contraseña son obligatorios"]);
     exit;
 }
 
-$email = $input['email'];
-$contrasena = $input['contrasena'];
-
 try {
-    $stmt = $pdo->prepare("SELECT * FROM usuarios WHERE email = ?");
-    $stmt->execute([$email]);
+    // Buscar usuario por email
+    $stmt = $conn->prepare("SELECT * FROM cliente WHERE email = :email LIMIT 1");
+    $stmt->execute([':email' => $data['email']]);
     $usuario = $stmt->fetch(PDO::FETCH_ASSOC);
 
-    if ($usuario && password_verify($contrasena, $usuario['contrasena'])) {
-        echo json_encode(["mensaje" => "Inicio de sesión exitoso"]);
+    if ($usuario && password_verify($data['contrasena'], $usuario['contrasena'])) {
+        echo json_encode([
+            "estado" => "ok",
+            "mensaje" => "Login exitoso",
+            "usuario" => [
+                "id_cliente" => $usuario['id_cliente'],
+                "nombre"     => $usuario['nombre'],
+                "email"      => $usuario['email']
+            ]
+        ]);
     } else {
-        echo json_encode(["error" => "Credenciales incorrectas"]);
+        echo json_encode(["estado" => "error", "mensaje" => "Credenciales incorrectas"]);
     }
 } catch (PDOException $e) {
-    echo json_encode(["error" => "Error en el servidor"]);
+    echo json_encode(["estado" => "error", "mensaje" => $e->getMessage()]);
 }
-?>
+
 
 
 

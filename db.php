@@ -1,15 +1,22 @@
 <?php
-$host = 'localhost';
-$dbname = 'api_usuarios';
-$user = 'root';
-$pass = '';
-$port = 3307; // ajusta si es necesario
+$host = "localhost";
+$dbname = "api_usuarios";
+$usuario = "root";
+$clave = "";
+$puerto = 3307; // Si usas XAMPP con puerto distinto
 
 try {
-    $pdo = new PDO("mysql:host=$host;port=$port;dbname=$dbname;charset=utf8", $user, $pass);
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    $conn = new PDO("mysql:host=$host;port=$puerto;dbname=$dbname;charset=utf8mb4", $usuario, $clave);
+    $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+    // 🔹 Alias para compatibilidad con código que use $pdo
+    $pdo = $conn;
+
 } catch (PDOException $e) {
-    die("Error de conexión: " . $e->getMessage());
+    echo json_encode([
+        "estado" => "error",
+        "mensaje" => "Error de conexión: " . $e->getMessage()
+    ]);
+    exit; // Evita que el script siga ejecutándose
 }
 ?>
-
